@@ -56,7 +56,7 @@ func newAnalyzeCmd() *cobra.Command {
 		Use:   "analyze [chart]",
 		Short: "Analyze a Helm chart or values file for cost & security findings",
 		Args:  cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			// TODO(phase-3): wire internal/analyze, internal/parser, internal/rules, internal/render.
 			_ = jsonOut
 			_ = offline
