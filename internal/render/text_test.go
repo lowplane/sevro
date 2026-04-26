@@ -9,7 +9,52 @@ import (
 	"github.com/lowplane/sevro/internal/rules"
 )
 
-func TestText_AlwaysIncludesAccuracyDisclosure(t *testing.T) {
+// stripANSI removes basic ANSI/OSC sequences so assertions can check
+// content irrespective of styling.
+func stripANSI(s string) string {
+	var out strings.Builder
+	for i := 0; i < len(s); {
+		if s[i] != 0x1b {
+			out.WriteByte(s[i])
+			i++
+			continue
+		}
+		// CSI: ESC [ ... m | ESC [ ... <letter>
+		if i+1 < len(s) && s[i+1] == '[' {
+			j := i + 2
+			for j < len(s) && !((s[j] >= '@' && s[j] <= '~')) {
+				j++
+			}
+			if j < len(s) {
+				j++
+			}
+			i = j
+			continue
+		}
+		// OSC: ESC ] ... BEL or ESC \
+		if i+1 < len(s) && s[i+1] == ']' {
+			j := i + 2
+			for j < len(s) && s[j] != 0x07 {
+				if s[j] == 0x1b && j+1 < len(s) && s[j+1] == '\\' {
+					j += 2
+					goto done
+				}
+				j++
+			}
+			if j < len(s) {
+				j++ // consume BEL
+			}
+		done:
+			i = j
+			continue
+		}
+		// fallback: skip ESC + next char
+		i += 2
+	}
+	return out.String()
+}
+
+func TestText_PlainAlwaysIncludesAccuracyDisclosure(t *testing.T) {
 	cases := []Report{
 		{Source: "empty", Workloads: 0},
 		{Source: "with-findings", Workloads: 1, Findings: []rules.Finding{
@@ -18,24 +63,62 @@ func TestText_AlwaysIncludesAccuracyDisclosure(t *testing.T) {
 	}
 	for _, r := range cases {
 		var buf bytes.Buffer
-		if err := Text(&buf, r); err != nil {
+		if err := Text(&buf, r, Options{Color: false}); err != nil {
 			t.Fatalf("Text(%s): %v", r.Source, err)
 		}
 		if !strings.Contains(buf.String(), AccuracyDisclosure) {
-			t.Fatalf("Text(%s): output is missing accuracy disclosure:\n%s", r.Source, buf.String())
+			t.Fatalf("Text(%s): missing accuracy disclosure:\n%s", r.Source, buf.String())
 		}
 	}
 }
 
-func TestText_NoFindings(t *testing.T) {
+func TestText_ColoredAlwaysIncludesAccuracyDisclosure(t *testing.T) {
+	r := Report{Source: "x", Workloads: 1, Findings: []rules.Finding{
+		{DetectorID: "x", Workload: "api", Title: "T", Severity: rules.SeverityHigh, Confidence: rules.ConfidenceHigh},
+	}}
+	var buf bytes.Buffer
+	if err := Text(&buf, r, Options{Color: true}); err != nil {
+		t.Fatal(err)
+	}
+	stripped := stripANSI(buf.String())
+	if !strings.Contains(stripped, AccuracyDisclosure) {
+		t.Fatalf("colored output missing disclosure (stripped):\n%s", stripped)
+	}
+}
+
+func TestText_PlainNoANSI(t *testing.T) {
+	r := Report{Source: "x", Workloads: 1, Findings: []rules.Finding{
+		{DetectorID: "x", Workload: "api", Title: "T", Severity: rules.SeverityMed, Confidence: rules.ConfidenceMed, MonthlyUSDCents: 100},
+	}}
+	var buf bytes.Buffer
+	_ = Text(&buf, r, Options{Color: false})
+	if strings.Contains(buf.String(), "\x1b") {
+		t.Fatalf("plain text output should not contain ANSI:\n%q", buf.String())
+	}
+}
+
+func TestText_ColoredEmitsANSI(t *testing.T) {
+	r := Report{Source: "x", Workloads: 1, Findings: []rules.Finding{
+		{DetectorID: "x", Workload: "api", Title: "T", Severity: rules.SeverityHigh, Confidence: rules.ConfidenceHigh},
+	}}
+	var buf bytes.Buffer
+	_ = Text(&buf, r, Options{Color: true})
+	if !strings.Contains(buf.String(), "\x1b") {
+		t.Fatalf("colored output should contain ANSI; got:\n%s", buf.String())
+	}
+}
+
+func TestText_NoFindingsCelebrates(t *testing.T) {
 	var buf bytes.Buffer
 	r := Report{Source: "demo", Workloads: 5}
-	if err := Text(&buf, r); err != nil {
+	if err := Text(&buf, r, Options{Color: false}); err != nil {
 		t.Fatal(err)
 	}
 	out := buf.String()
-	if !strings.Contains(out, "No findings across 5 workload(s)") {
-		t.Errorf("expected no-findings line, got:\n%s", out)
+	for _, want := range []string{"5 workloads", "0 findings", "Clean", "No findings"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %q in:\n%s", want, out)
+		}
 	}
 }
 
@@ -49,6 +132,7 @@ func TestText_RendersFindings(t *testing.T) {
 				DetectorID:      "cpu-overprovisioned",
 				Workload:        "api",
 				Title:           "CPU request appears overprovisioned",
+				Detail:          "Request 2 vs limit 2.5",
 				MonthlyUSDCents: 12345,
 				Severity:        rules.SeverityMed,
 				Confidence:      rules.ConfidenceMed,
@@ -57,25 +141,29 @@ func TestText_RendersFindings(t *testing.T) {
 				DetectorID: "missing-memory-limit",
 				Workload:   "worker",
 				Title:      "Memory limit not set",
+				Detail:     "Without a limit it can consume node memory unbounded.",
 				Severity:   rules.SeverityHigh,
 				Confidence: rules.ConfidenceHigh,
 			},
 		},
 	}
-	if err := Text(&buf, r); err != nil {
+	if err := Text(&buf, r, Options{Color: false}); err != nil {
 		t.Fatal(err)
 	}
 	out := buf.String()
 	for _, want := range []string{
-		"[MED]",
-		"CPU request appears overprovisioned",
-		"workload: api",
-		"[HIGH]",
+		"sevro",
+		"Helm chart cost & security analysis",
+		"HIGH",
+		"MED",
 		"Memory limit not set",
-		"$123.45", // monthly_savings (per-finding)
-		"Estimated monthly savings: $123.45",
-		"sevro.dev",
+		"CPU request appears overprovisioned",
+		"$123.45",
+		"sevro.dev/get",
 		"±40%",
+		"confidence:",
+		"high",
+		"medium",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q in:\n%s", want, out)
@@ -83,7 +171,7 @@ func TestText_RendersFindings(t *testing.T) {
 	}
 }
 
-func TestJSON_IncludesDisclosure(t *testing.T) {
+func TestJSON_IncludesDisclosureAndShape(t *testing.T) {
 	var buf bytes.Buffer
 	r := Report{
 		Source:    "demo",
@@ -122,5 +210,40 @@ func TestFormatCents(t *testing.T) {
 		if got := formatCents(in); got != want {
 			t.Errorf("formatCents(%d) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestPlural(t *testing.T) {
+	if got := plural(1, "x", "xs"); got != "1 x" {
+		t.Errorf("plural(1) = %q", got)
+	}
+	if got := plural(0, "x", "xs"); got != "0 xs" {
+		t.Errorf("plural(0) = %q", got)
+	}
+	if got := plural(2, "x", "xs"); got != "2 xs" {
+		t.Errorf("plural(2) = %q", got)
+	}
+}
+
+func TestWrap(t *testing.T) {
+	got := wrap("the quick brown fox jumps over the lazy dog", 12)
+	if len(got) < 2 {
+		t.Fatalf("expected wrap into multiple lines: %v", got)
+	}
+	for _, line := range got {
+		if len(line) > 12 && !strings.Contains(line, " ") {
+			// single long word is allowed to overflow, but the
+			// general invariant is that wrapped lines stay ≤ width.
+			continue
+		}
+		if len([]rune(line)) > 12+1 { // +1 slack for word boundary
+			t.Errorf("wrap line too wide: %q", line)
+		}
+	}
+}
+
+func TestWrap_Empty(t *testing.T) {
+	if got := wrap("", 10); got != nil {
+		t.Errorf("wrap(empty) = %v, want nil", got)
 	}
 }
