@@ -4,7 +4,7 @@ This is the **open-source** Sevro CLI (`@sevro/cli`). It must remain independent
 
 ## Stack
 
-- Go 1.23+, single module (`github.com/lowplane/cli`)
+- Go 1.23+, single module (`github.com/lowplane/sevro`)
 - Cobra for command parsing
 - npm wrapper (`@sevro/cli`) downloads the platform-specific Go binary on `npm install`
 - GoReleaser for cross-platform builds (linux/macos amd64/arm64)
@@ -23,7 +23,7 @@ These are not preferences. They are conditions for the OSS funnel to work.
 ## Distribution
 
 - Primary: `npm install -g @sevro/cli` or `npx @sevro/cli analyze ...`. The npm `postinstall` script downloads the right binary from GitHub Releases.
-- Secondary: `go install github.com/lowplane/cli/cmd/sevro@latest`
+- Secondary: `go install github.com/lowplane/sevro/cmd/sevro@latest`
 - Releases are GoReleaser-built and cosign-signed.
 - We do **not** publish to Homebrew or Cargo in Year 1 (per playbook — npm is where the platform engineers are).
 

@@ -5,8 +5,8 @@ Cost and security analysis for Kubernetes Helm charts, from your terminal. No lo
 
 [![npm](https://img.shields.io/npm/v/@sevro/cli.svg?label=%40sevro%2Fcli&color=blue)](https://www.npmjs.com/package/@sevro/cli)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Go Reference](https://pkg.go.dev/badge/github.com/lowplane/cli.svg)](https://pkg.go.dev/github.com/lowplane/cli)
-[![CI](https://img.shields.io/github/actions/workflow/status/lowplane/cli/ci.yml?branch=main&label=ci)](https://github.com/lowplane/cli/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/lowplane/sevro.svg)](https://pkg.go.dev/github.com/lowplane/sevro)
+[![CI](https://img.shields.io/github/actions/workflow/status/lowplane/sevro/ci.yml?branch=main&label=ci)](https://github.com/lowplane/sevro/actions/workflows/ci.yml)
 [![Downloads](https://img.shields.io/npm/dm/@sevro/cli.svg)](https://www.npmjs.com/package/@sevro/cli)
 
 ```sh
@@ -67,7 +67,7 @@ sevro analyze ./chart
 ### Option 3: Go install
 
 ```sh
-go install github.com/lowplane/cli/cmd/sevro@latest
+go install github.com/lowplane/sevro/cmd/sevro@latest
 ```
 
 ### Option 4: Download a release binary
@@ -76,12 +76,12 @@ Pre-built binaries for Linux (amd64, arm64) and macOS (amd64, arm64) are publish
 
 ```sh
 # Linux amd64
-curl -L https://github.com/lowplane/cli/releases/latest/download/sevro_linux_amd64.tar.gz | tar -xz
+curl -L https://github.com/lowplane/sevro/releases/latest/download/sevro_linux_amd64.tar.gz | tar -xz
 sudo mv sevro /usr/local/bin/
 ```
 
 > [!TIP]
-> All release artifacts are signed with [Cosign](https://docs.sigstore.dev/cosign/overview/). Verification instructions on the [release page](https://github.com/lowplane/cli/releases).
+> All release artifacts are signed with [Cosign](https://docs.sigstore.dev/cosign/overview/). Verification instructions on the [release page](https://github.com/lowplane/sevro/releases).
 
 ---
 
@@ -487,14 +487,14 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full g
 - No LLM calls, no telemetry, no Windows-specific code paths (these are project-defining constraints)
 - See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
-Good first issues are labeled [`good-first-issue`](https://github.com/lowplane/cli/labels/good-first-issue).
+Good first issues are labeled [`good-first-issue`](https://github.com/lowplane/sevro/labels/good-first-issue).
 
 ---
 
 ## Community
 
-- **Discussions** — [github.com/lowplane/cli/discussions](https://github.com/lowplane/cli/discussions)
-- **Issues** — [github.com/lowplane/cli/issues](https://github.com/lowplane/cli/issues)
+- **Discussions** — [github.com/lowplane/sevro/discussions](https://github.com/lowplane/sevro/discussions)
+- **Issues** — [github.com/lowplane/sevro/issues](https://github.com/lowplane/sevro/issues)
 - **Security** — `security@sevro.dev` (see [SECURITY.md](SECURITY.md))
 - **General** — [`hello@sevro.dev`](mailto:hello@sevro.dev)
 

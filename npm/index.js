@@ -12,7 +12,7 @@ const binaryPath = path.join(__dirname, '..', 'vendor', binaryName);
 if (!fs.existsSync(binaryPath)) {
   console.error('sevro: binary not found at', binaryPath);
   console.error('sevro: try `npm install -g @sevro/cli` again, or build from source:');
-  console.error('  go install github.com/lowplane/cli/cmd/sevro@latest');
+  console.error('  go install github.com/lowplane/sevro/cmd/sevro@latest');
   process.exit(1);
 }
 

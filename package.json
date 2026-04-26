@@ -6,10 +6,10 @@
   "homepage": "https://sevro.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lowplane/cli.git"
+    "url": "https://github.com/lowplane/sevro.git"
   },
   "bugs": {
-    "url": "https://github.com/lowplane/cli/issues"
+    "url": "https://github.com/lowplane/sevro/issues"
   },
   "keywords": [
     "kubernetes",

@@ -1,4 +1,4 @@
-module github.com/lowplane/cli
+module github.com/lowplane/sevro
 
 go 1.24
 

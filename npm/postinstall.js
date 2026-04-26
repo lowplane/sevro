@@ -36,11 +36,11 @@ const target = supported[key];
 if (!target) {
   console.error(`sevro: unsupported platform ${key}.`);
   console.error('sevro: build from source instead:');
-  console.error('  go install github.com/lowplane/cli/cmd/sevro@latest');
+  console.error('  go install github.com/lowplane/sevro/cmd/sevro@latest');
   process.exit(1);
 }
 
-const url = `https://github.com/lowplane/cli/releases/download/v${VERSION}/sevro_${VERSION}_${target}.tar.gz`;
+const url = `https://github.com/lowplane/sevro/releases/download/v${VERSION}/sevro_${VERSION}_${target}.tar.gz`;
 const vendorDir = path.join(__dirname, '..', 'vendor');
 fs.mkdirSync(vendorDir, { recursive: true });
 
@@ -75,7 +75,7 @@ const pipelineP = promisify(pipeline);
   } catch (err) {
     console.error('sevro: failed to install binary:', err.message);
     console.error('sevro: this is non-fatal — build from source if needed:');
-    console.error('  go install github.com/lowplane/cli/cmd/sevro@latest');
+    console.error('  go install github.com/lowplane/sevro/cmd/sevro@latest');
     // Exit 0 so npm install does not abort entirely.
     process.exit(0);
   }

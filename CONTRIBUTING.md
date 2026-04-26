@@ -5,7 +5,7 @@ Thanks for considering a contribution. The CLI is the open, auditable surface of
 ## Quickstart
 
 ```sh
-git clone https://github.com/lowplane/cli cli
+git clone https://github.com/lowplane/sevro cli
 cd cli
 make build              # produces ./bin/sevro
 ./bin/sevro --version
