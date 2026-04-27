@@ -19,6 +19,33 @@ type Workload struct {
 	Requests ResourceList
 	Limits   ResourceList
 	Image    ImageRef
+	// Replicas mirrors the chart's `replicas` value (or `replicaCount`,
+	// the most common alternative key). Zero means "unset"; the
+	// detector library treats unset as "the chart's default", which is
+	// not necessarily 1.
+	Replicas int
+	// HasHPA reports whether an autoscaler block was declared on this
+	// workload. Charts vary in how they expose HPA — `autoscaling.enabled`
+	// is the most common — so we conservatively report "true" when any
+	// `autoscaling` mapping is present and not explicitly disabled.
+	HasHPA bool
+	// Security captures the security-context flags the security
+	// detectors care about. Nil pointers mean "not declared in the
+	// chart"; the detector decides whether unset is safe.
+	Security SecurityContext
+}
+
+// SecurityContext is the subset of pod / container `securityContext`
+// fields Sevro inspects. Nil pointers preserve "not declared" — a
+// workload that has `runAsNonRoot: false` is materially different from
+// one that omits the field entirely.
+type SecurityContext struct {
+	RunAsNonRoot           *bool
+	Privileged             *bool
+	ReadOnlyRootFilesystem *bool
+	HostNetwork            *bool
+	HostPath               *bool // any volume sets hostPath
+	AllowPrivilegeEscalation *bool
 }
 
 // ResourceList captures the CPU and memory of either requests or limits.
@@ -111,6 +138,9 @@ func walk(n *yaml.Node, path string, out *[]Workload) {
 				if img := findChild(v, "image"); img != nil {
 					wl.Image = readImage(img)
 				}
+				wl.Replicas = readReplicas(v)
+				wl.HasHPA = readHasHPA(v)
+				wl.Security = readSecurity(v)
 				*out = append(*out, wl)
 			}
 			walk(v, childPath, out)
@@ -215,4 +245,110 @@ func joinPath(parent, child string) string {
 		return child
 	}
 	return parent + "." + child
+}
+
+// readReplicas accepts both `replicas` and `replicaCount` (Bitnami
+// convention). Returns 0 if the field is missing or non-numeric.
+func readReplicas(n *yaml.Node) int {
+	for _, key := range []string{"replicas", "replicaCount"} {
+		if c := findChild(n, key); c != nil && c.Kind == yaml.ScalarNode {
+			v := 0
+			for i := 0; i < len(c.Value); i++ {
+				ch := c.Value[i]
+				if ch < '0' || ch > '9' {
+					return 0
+				}
+				v = v*10 + int(ch-'0')
+			}
+			return v
+		}
+	}
+	return 0
+}
+
+// readHasHPA returns true when `autoscaling.enabled` is set or the
+// `hpa` mapping is present and not disabled. A bare `autoscaling`
+// block without `enabled: false` counts as enabled.
+func readHasHPA(n *yaml.Node) bool {
+	for _, key := range []string{"autoscaling", "hpa", "horizontalPodAutoscaler"} {
+		c := findChild(n, key)
+		if c == nil {
+			continue
+		}
+		if c.Kind != yaml.MappingNode {
+			continue
+		}
+		if en := findChild(c, "enabled"); en != nil && en.Kind == yaml.ScalarNode {
+			if en.Value == "true" || en.Value == "yes" || en.Value == "1" {
+				return true
+			}
+			if en.Value == "false" || en.Value == "no" || en.Value == "0" {
+				return false
+			}
+		}
+		return true // mapping present, no explicit disable
+	}
+	return false
+}
+
+// readSecurity reads `securityContext` (pod or container level) plus
+// `hostNetwork` / `volumes[*].hostPath` flags. The walker only inspects
+// the workload's direct map; deep template rendering is Phase 7.
+func readSecurity(n *yaml.Node) SecurityContext {
+	var sec SecurityContext
+
+	if hostNet := findChild(n, "hostNetwork"); hostNet != nil && hostNet.Kind == yaml.ScalarNode {
+		b := boolValue(hostNet.Value)
+		sec.HostNetwork = &b
+	}
+
+	if vols := findChild(n, "volumes"); vols != nil && vols.Kind == yaml.SequenceNode {
+		for _, v := range vols.Content {
+			if v.Kind == yaml.MappingNode {
+				if findChild(v, "hostPath") != nil {
+					t := true
+					sec.HostPath = &t
+					break
+				}
+			}
+		}
+	}
+
+	for _, key := range []string{"securityContext", "podSecurityContext", "containerSecurityContext"} {
+		ctx := findChild(n, key)
+		if ctx == nil || ctx.Kind != yaml.MappingNode {
+			continue
+		}
+		applySecFields(ctx, &sec)
+	}
+	// Helm charts also commonly nest a per-container securityContext
+	// under containerSecurityContext directly on the workload.
+	return sec
+}
+
+func applySecFields(ctx *yaml.Node, out *SecurityContext) {
+	if v := findChild(ctx, "runAsNonRoot"); v != nil && v.Kind == yaml.ScalarNode {
+		b := boolValue(v.Value)
+		out.RunAsNonRoot = &b
+	}
+	if v := findChild(ctx, "privileged"); v != nil && v.Kind == yaml.ScalarNode {
+		b := boolValue(v.Value)
+		out.Privileged = &b
+	}
+	if v := findChild(ctx, "readOnlyRootFilesystem"); v != nil && v.Kind == yaml.ScalarNode {
+		b := boolValue(v.Value)
+		out.ReadOnlyRootFilesystem = &b
+	}
+	if v := findChild(ctx, "allowPrivilegeEscalation"); v != nil && v.Kind == yaml.ScalarNode {
+		b := boolValue(v.Value)
+		out.AllowPrivilegeEscalation = &b
+	}
+}
+
+func boolValue(s string) bool {
+	switch s {
+	case "true", "True", "TRUE", "yes", "Yes", "1":
+		return true
+	}
+	return false
 }
