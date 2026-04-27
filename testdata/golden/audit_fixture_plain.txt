@@ -3,7 +3,15 @@
 ────────────────────────────────────────────────────────────────────────────────
 
   source: /home/shivam/Desktop/Merge/sevro/testdata/fixtures/basic-chart/values.yaml
-  8 workloads · 8 findings
+  10 workloads · 21 findings
+
+   HIGH   admin-tool
+    allowPrivilegeEscalation explicitly enabled
+    securityContext.allowPrivilegeEscalation=true lets a process gain
+    capabilities its parent didn't have (setuid, file capabilities). Set
+    allowPrivilegeEscalation=false unless you're running an init system or
+    known-good legacy binary that requires it.
+    confidence: ●●● high
 
    HIGH   admin-tool
     Container declared privileged
@@ -21,10 +29,31 @@
     confidence: ●●● high
 
    MED    api
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
+   MED    api
     runAsNonRoot not declared
     securityContext.runAsNonRoot is not declared. Without it, Kubernetes
     defers to the image's USER directive — which is UID 0 for most public
     images. Set runAsNonRoot=true to make the intent explicit.
+    confidence: ●●○ medium
+
+   LOW    api
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   MED    cache
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
     confidence: ●●○ medium
 
    MED    cache
@@ -34,6 +63,27 @@
     digest or version tag.
     confidence: ●●● high
 
+   LOW    cache
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   LOW    dev-build
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   MED    logger
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
    MED    logger
     Image not pinned to a stable tag
     Image fluentd uses (no tag). The same tag can resolve to different bytes
@@ -41,11 +91,41 @@
     version tag.
     confidence: ●●● high
 
+   LOW    logger
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   MED    shipper
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
+   LOW    shipper
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
    HIGH   sniffer
     Pod uses host network
     hostNetwork=true puts the pod in the node's network namespace, bypassing
     NetworkPolicy and exposing localhost services on the host. Required for
     some CNI plugins and ingress controllers; otherwise leave it unset.
+    confidence: ●●● high
+
+   HIGH   sniffer
+    Pod mounts a hostPath volume
+    A volume of type hostPath exposes the node's filesystem to the pod.
+    Required for some node-level agents (log collectors, CNI helpers) but a
+    sharp edge for application workloads — a path-traversal bug suddenly
+    becomes a node compromise. Replace with PVC, configMap, or downward API
+    where possible.
     confidence: ●●● high
 
    HIGH   worker
@@ -55,11 +135,25 @@
     a limit at or above your observed P95.
     confidence: ●●● high
 
+   MED    worker
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
    LOW    worker
     CPU limit not set
     This workload declares a CPU request but no limit. Some teams omit CPU
     limits intentionally to avoid throttling; others expect predictable
     scheduling. Confirm this is the intended posture.
+    confidence: ●●○ medium
+
+   LOW    worker
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
     confidence: ●●○ medium
 
 ────────────────────────────────────────────────────────────────────────────────

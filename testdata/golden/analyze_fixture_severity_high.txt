@@ -3,7 +3,15 @@
 ────────────────────────────────────────────────────────────────────────────────
 
   source: /home/shivam/Desktop/Merge/sevro/testdata/fixtures/basic-chart/values.yaml
-  8 workloads · 4 findings
+  10 workloads · 6 findings
+
+   HIGH   admin-tool
+    allowPrivilegeEscalation explicitly enabled
+    securityContext.allowPrivilegeEscalation=true lets a process gain
+    capabilities its parent didn't have (setuid, file capabilities). Set
+    allowPrivilegeEscalation=false unless you're running an init system or
+    known-good legacy binary that requires it.
+    confidence: ●●● high
 
    HIGH   admin-tool
     Container declared privileged
@@ -25,6 +33,15 @@
     hostNetwork=true puts the pod in the node's network namespace, bypassing
     NetworkPolicy and exposing localhost services on the host. Required for
     some CNI plugins and ingress controllers; otherwise leave it unset.
+    confidence: ●●● high
+
+   HIGH   sniffer
+    Pod mounts a hostPath volume
+    A volume of type hostPath exposes the node's filesystem to the pod.
+    Required for some node-level agents (log collectors, CNI helpers) but a
+    sharp edge for application workloads — a path-traversal bug suddenly
+    becomes a node compromise. Replace with PVC, configMap, or downward API
+    where possible.
     confidence: ●●● high
 
    HIGH   worker

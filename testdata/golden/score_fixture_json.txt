@@ -1,22 +1,37 @@
 {
   "accuracy_disclosure": "Sandbox accuracy: ±40%. Install the Sevro agent for exact numbers (sevro.dev/get).",
   "score_report": {
-    "workloads_analyzed": 8,
+    "workloads_analyzed": 10,
     "source": "/home/shivam/Desktop/Merge/sevro/testdata/fixtures/basic-chart/values.yaml",
     "score": 0,
     "confidence_band": "low",
     "penalties": {
+      "allow-privilege-escalation": 75,
+      "cpu-limit-far-above-request": 50,
       "cpu-overprovisioned": 10,
       "host-network": 25,
+      "host-path-volume": 25,
       "image-pinned-latest": 20,
+      "memory-limit-far-above-request": 10,
       "memory-overprovisioned": 10,
       "missing-cpu-limit": 3,
       "missing-memory-limit": 25,
       "privileged-container": 25,
+      "read-only-root-fs-missing": 18,
       "replicas-too-high": 10,
-      "run-as-root": 35
+      "run-as-root": 35,
+      "unbounded-image-tag": 10
     },
     "findings": [
+      {
+        "DetectorID": "allow-privilege-escalation",
+        "Workload": "admin-tool",
+        "Title": "allowPrivilegeEscalation explicitly enabled",
+        "Detail": "securityContext.allowPrivilegeEscalation=true lets a process gain capabilities its parent didn't have (setuid, file capabilities). Set allowPrivilegeEscalation=false unless you're running an init system or known-good legacy binary that requires it.",
+        "MonthlyUSDCents": 0,
+        "Severity": "HIGH",
+        "Confidence": "high"
+      },
       {
         "DetectorID": "privileged-container",
         "Workload": "admin-tool",
@@ -34,6 +49,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high"
+      },
+      {
+        "DetectorID": "allow-privilege-escalation",
+        "Workload": "api",
+        "Title": "allowPrivilegeEscalation not declared",
+        "Detail": "securityContext.allowPrivilegeEscalation is undeclared; Kubernetes defaults it to true. Set allowPrivilegeEscalation=false to make the no_new_privs bit explicit.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
       },
       {
         "DetectorID": "cpu-overprovisioned",
@@ -63,6 +87,51 @@
         "Confidence": "medium"
       },
       {
+        "DetectorID": "read-only-root-fs-missing",
+        "Workload": "api",
+        "Title": "readOnlyRootFilesystem not declared",
+        "Detail": "securityContext.readOnlyRootFilesystem is not declared. Declare readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs volumes for legitimate write paths.",
+        "MonthlyUSDCents": 0,
+        "Severity": "LOW",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "cpu-limit-far-above-request",
+        "Workload": "bursty",
+        "Title": "CPU limit is many multiples of the request",
+        "Detail": "Request 200m vs limit 2 — a 10.0x burst window. The scheduler reserves only the request, so the pod can suddenly consume far more than its node-allocation suggests. Tighten the limit or raise the request to match observed P95.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "memory-limit-far-above-request",
+        "Workload": "bursty",
+        "Title": "Memory limit is many multiples of the request",
+        "Detail": "Request 256Mi vs limit 4Gi — a 16.0x burst window. Memory limits aren't elastic the way CPU is: a pod that climbs to its limit will OOM, taking neighbours down via node memory pressure. Tighten the limit toward observed P95.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "allow-privilege-escalation",
+        "Workload": "cache",
+        "Title": "allowPrivilegeEscalation not declared",
+        "Detail": "securityContext.allowPrivilegeEscalation is undeclared; Kubernetes defaults it to true. Set allowPrivilegeEscalation=false to make the no_new_privs bit explicit.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "cpu-limit-far-above-request",
+        "Workload": "cache",
+        "Title": "CPU limit is many multiples of the request",
+        "Detail": "Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves only the request, so the pod can suddenly consume far more than its node-allocation suggests. Tighten the limit or raise the request to match observed P95.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
         "DetectorID": "image-pinned-latest",
         "Workload": "cache",
         "Title": "Image not pinned to a stable tag",
@@ -70,6 +139,60 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high"
+      },
+      {
+        "DetectorID": "read-only-root-fs-missing",
+        "Workload": "cache",
+        "Title": "readOnlyRootFilesystem not declared",
+        "Detail": "securityContext.readOnlyRootFilesystem is not declared. Declare readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs volumes for legitimate write paths.",
+        "MonthlyUSDCents": 0,
+        "Severity": "LOW",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "cpu-limit-far-above-request",
+        "Workload": "clean",
+        "Title": "CPU limit is many multiples of the request",
+        "Detail": "Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves only the request, so the pod can suddenly consume far more than its node-allocation suggests. Tighten the limit or raise the request to match observed P95.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "unbounded-image-tag",
+        "Workload": "dev-build",
+        "Title": "Floating image tag prevents reproducible deploys",
+        "Detail": "Image tag 'main' is a floating reference: upstream re-points it whenever they publish. The same Helm release can therefore land different bytes on consecutive deploys, and rollbacks become ambiguous. Pin to an immutable digest or version tag.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "high"
+      },
+      {
+        "DetectorID": "read-only-root-fs-missing",
+        "Workload": "dev-build",
+        "Title": "readOnlyRootFilesystem not declared",
+        "Detail": "securityContext.readOnlyRootFilesystem is not declared. Declare readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs volumes for legitimate write paths.",
+        "MonthlyUSDCents": 0,
+        "Severity": "LOW",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "allow-privilege-escalation",
+        "Workload": "logger",
+        "Title": "allowPrivilegeEscalation not declared",
+        "Detail": "securityContext.allowPrivilegeEscalation is undeclared; Kubernetes defaults it to true. Set allowPrivilegeEscalation=false to make the no_new_privs bit explicit.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "cpu-limit-far-above-request",
+        "Workload": "logger",
+        "Title": "CPU limit is many multiples of the request",
+        "Detail": "Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves only the request, so the pod can suddenly consume far more than its node-allocation suggests. Tighten the limit or raise the request to match observed P95.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
       },
       {
         "DetectorID": "image-pinned-latest",
@@ -81,6 +204,33 @@
         "Confidence": "high"
       },
       {
+        "DetectorID": "read-only-root-fs-missing",
+        "Workload": "logger",
+        "Title": "readOnlyRootFilesystem not declared",
+        "Detail": "securityContext.readOnlyRootFilesystem is not declared. Declare readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs volumes for legitimate write paths.",
+        "MonthlyUSDCents": 0,
+        "Severity": "LOW",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "allow-privilege-escalation",
+        "Workload": "shipper",
+        "Title": "allowPrivilegeEscalation not declared",
+        "Detail": "securityContext.allowPrivilegeEscalation is undeclared; Kubernetes defaults it to true. Set allowPrivilegeEscalation=false to make the no_new_privs bit explicit.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "cpu-limit-far-above-request",
+        "Workload": "shipper",
+        "Title": "CPU limit is many multiples of the request",
+        "Detail": "Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves only the request, so the pod can suddenly consume far more than its node-allocation suggests. Tighten the limit or raise the request to match observed P95.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
         "DetectorID": "replicas-too-high",
         "Workload": "shipper",
         "Title": "High static replica count without an autoscaler",
@@ -90,10 +240,28 @@
         "Confidence": "medium"
       },
       {
+        "DetectorID": "read-only-root-fs-missing",
+        "Workload": "shipper",
+        "Title": "readOnlyRootFilesystem not declared",
+        "Detail": "securityContext.readOnlyRootFilesystem is not declared. Declare readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs volumes for legitimate write paths.",
+        "MonthlyUSDCents": 0,
+        "Severity": "LOW",
+        "Confidence": "medium"
+      },
+      {
         "DetectorID": "host-network",
         "Workload": "sniffer",
         "Title": "Pod uses host network",
         "Detail": "hostNetwork=true puts the pod in the node's network namespace, bypassing NetworkPolicy and exposing localhost services on the host. Required for some CNI plugins and ingress controllers; otherwise leave it unset.",
+        "MonthlyUSDCents": 0,
+        "Severity": "HIGH",
+        "Confidence": "high"
+      },
+      {
+        "DetectorID": "host-path-volume",
+        "Workload": "sniffer",
+        "Title": "Pod mounts a hostPath volume",
+        "Detail": "A volume of type hostPath exposes the node's filesystem to the pod. Required for some node-level agents (log collectors, CNI helpers) but a sharp edge for application workloads — a path-traversal bug suddenly becomes a node compromise. Replace with PVC, configMap, or downward API where possible.",
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high"
@@ -108,10 +276,28 @@
         "Confidence": "high"
       },
       {
+        "DetectorID": "allow-privilege-escalation",
+        "Workload": "worker",
+        "Title": "allowPrivilegeEscalation not declared",
+        "Detail": "securityContext.allowPrivilegeEscalation is undeclared; Kubernetes defaults it to true. Set allowPrivilegeEscalation=false to make the no_new_privs bit explicit.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
         "DetectorID": "missing-cpu-limit",
         "Workload": "worker",
         "Title": "CPU limit not set",
         "Detail": "This workload declares a CPU request but no limit. Some teams omit CPU limits intentionally to avoid throttling; others expect predictable scheduling. Confirm this is the intended posture.",
+        "MonthlyUSDCents": 0,
+        "Severity": "LOW",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "read-only-root-fs-missing",
+        "Workload": "worker",
+        "Title": "readOnlyRootFilesystem not declared",
+        "Detail": "securityContext.readOnlyRootFilesystem is not declared. Declare readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs volumes for legitimate write paths.",
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium"

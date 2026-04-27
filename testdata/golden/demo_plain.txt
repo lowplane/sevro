@@ -3,7 +3,15 @@
 ────────────────────────────────────────────────────────────────────────────────
 
   source: demo
-  8 workloads · 11 findings
+  10 workloads · 31 findings
+
+   HIGH   admin-tool
+    allowPrivilegeEscalation explicitly enabled
+    securityContext.allowPrivilegeEscalation=true lets a process gain
+    capabilities its parent didn't have (setuid, file capabilities). Set
+    allowPrivilegeEscalation=false unless you're running an init system or
+    known-good legacy binary that requires it.
+    confidence: ●●● high
 
    HIGH   admin-tool
     Container declared privileged
@@ -19,6 +27,13 @@
     blast radius of any container escape. Set runAsNonRoot=true and runAsUser
     to a non-zero UID.
     confidence: ●●● high
+
+   MED    api
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
 
    MED    api   save ~$29.20 /mo
     CPU request appears overprovisioned
@@ -39,12 +54,95 @@
     images. Set runAsNonRoot=true to make the intent explicit.
     confidence: ●●○ medium
 
+   LOW    api
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   MED    bursty
+    CPU limit is many multiples of the request
+    Request 200m vs limit 2 — a 10.0x burst window. The scheduler reserves
+    only the request, so the pod can suddenly consume far more than its
+    node-allocation suggests. Tighten the limit or raise the request to match
+    observed P95.
+    confidence: ●●○ medium
+
+   MED    bursty
+    Memory limit is many multiples of the request
+    Request 256Mi vs limit 4Gi — a 16.0x burst window. Memory limits aren't
+    elastic the way CPU is: a pod that climbs to its limit will OOM, taking
+    neighbours down via node memory pressure. Tighten the limit toward
+    observed P95.
+    confidence: ●●○ medium
+
+   MED    cache
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
+   MED    cache
+    CPU limit is many multiples of the request
+    Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves
+    only the request, so the pod can suddenly consume far more than its
+    node-allocation suggests. Tighten the limit or raise the request to match
+    observed P95.
+    confidence: ●●○ medium
+
    MED    cache
     Image not pinned to a stable tag
     Image redis:latest uses :latest. The same tag can resolve to different
     bytes across deploys; rollback becomes ambiguous. Pin to an immutable
     digest or version tag.
     confidence: ●●● high
+
+   LOW    cache
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   MED    clean
+    CPU limit is many multiples of the request
+    Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves
+    only the request, so the pod can suddenly consume far more than its
+    node-allocation suggests. Tighten the limit or raise the request to match
+    observed P95.
+    confidence: ●●○ medium
+
+   MED    dev-build
+    Floating image tag prevents reproducible deploys
+    Image tag 'main' is a floating reference: upstream re-points it whenever
+    they publish. The same Helm release can therefore land different bytes on
+    consecutive deploys, and rollbacks become ambiguous. Pin to an immutable
+    digest or version tag.
+    confidence: ●●● high
+
+   LOW    dev-build
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   MED    logger
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
+   MED    logger
+    CPU limit is many multiples of the request
+    Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves
+    only the request, so the pod can suddenly consume far more than its
+    node-allocation suggests. Tighten the limit or raise the request to match
+    observed P95.
+    confidence: ●●○ medium
 
    MED    logger
     Image not pinned to a stable tag
@@ -53,11 +151,40 @@
     version tag.
     confidence: ●●● high
 
+   LOW    logger
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
+    confidence: ●●○ medium
+
+   MED    shipper
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
+   MED    shipper
+    CPU limit is many multiples of the request
+    Request 100m vs limit 500m — a 5.0x burst window. The scheduler reserves
+    only the request, so the pod can suddenly consume far more than its
+    node-allocation suggests. Tighten the limit or raise the request to match
+    observed P95.
+    confidence: ●●○ medium
+
    MED    shipper
     High static replica count without an autoscaler
     Replicas set to 10 without an HPA. Static high replica counts pay for
     unused capacity 24/7. Either enable autoscaling.enabled=true or right-size
     the static count to your observed P95.
+    confidence: ●●○ medium
+
+   LOW    shipper
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
     confidence: ●●○ medium
 
    HIGH   sniffer
@@ -67,6 +194,15 @@
     some CNI plugins and ingress controllers; otherwise leave it unset.
     confidence: ●●● high
 
+   HIGH   sniffer
+    Pod mounts a hostPath volume
+    A volume of type hostPath exposes the node's filesystem to the pod.
+    Required for some node-level agents (log collectors, CNI helpers) but a
+    sharp edge for application workloads — a path-traversal bug suddenly
+    becomes a node compromise. Replace with PVC, configMap, or downward API
+    where possible.
+    confidence: ●●● high
+
    HIGH   worker
     Memory limit not set
     This workload declares a memory request but no limit. Without a limit it
@@ -74,11 +210,25 @@
     a limit at or above your observed P95.
     confidence: ●●● high
 
+   MED    worker
+    allowPrivilegeEscalation not declared
+    securityContext.allowPrivilegeEscalation is undeclared; Kubernetes
+    defaults it to true. Set allowPrivilegeEscalation=false to make the
+    no_new_privs bit explicit.
+    confidence: ●●○ medium
+
    LOW    worker
     CPU limit not set
     This workload declares a CPU request but no limit. Some teams omit CPU
     limits intentionally to avoid throttling; others expect predictable
     scheduling. Confirm this is the intended posture.
+    confidence: ●●○ medium
+
+   LOW    worker
+    readOnlyRootFilesystem not declared
+    securityContext.readOnlyRootFilesystem is not declared. Declare
+    readOnlyRootFilesystem=true to make hardening explicit; mount tmpfs
+    volumes for legitimate write paths.
     confidence: ●●○ medium
 
 ────────────────────────────────────────────────────────────────────────────────

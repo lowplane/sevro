@@ -1,11 +1,13 @@
 # Demo chart — exercises every Year-1 detector.
-# - api         cpu-overprovisioned + memory-overprovisioned + run-as-root (unset)
+# - api         cpu-overprovisioned + memory-overprovisioned
 # - worker      missing-memory-limit + missing-cpu-limit
 # - cache       image-pinned-latest (Tag: latest)
 # - logger      image-pinned-latest (no tag)
 # - shipper     replicas-too-high (10 replicas, no HPA)
-# - admin-tool  privileged-container + run-as-root (explicit)
-# - sniffer     host-network
+# - admin-tool  privileged-container + run-as-root (explicit) + allow-privilege-escalation
+# - sniffer     host-network + host-path-volume
+# - bursty      cpu-limit-far-above-request + memory-limit-far-above-request
+# - dev-build   unbounded-image-tag (tag: main) + read-only-root-fs-missing
 # - clean       fully right-sized + secure; produces no findings
 
 api:
@@ -91,6 +93,8 @@ admin-tool:
   securityContext:
     privileged: true
     runAsNonRoot: false
+    allowPrivilegeEscalation: true
+    readOnlyRootFilesystem: true
 
 sniffer:
   image:
@@ -105,8 +109,47 @@ sniffer:
     limits:
       cpu: "100m"
       memory: "128Mi"
+  volumes:
+    - name: host-logs
+      hostPath:
+        path: /var/log
   securityContext:
     runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+
+bursty:
+  image:
+    repository: example/queue-worker
+    tag: "v3.1.4"
+  replicas: 2
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  securityContext:
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+
+dev-build:
+  image:
+    repository: example/scratch
+    tag: "main"
+  replicas: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
 
 clean:
   image:
@@ -122,3 +165,5 @@ clean:
       memory: "512Mi"
   securityContext:
     runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
