@@ -104,7 +104,7 @@ func TestImagePinnedLatest_NoImage(t *testing.T) {
 // that every ID is unique. Update the count when new detectors are
 // added; the IDs themselves are stable wire format.
 func TestAll_DetectorCountAndUniqueIDs(t *testing.T) {
-	const want = 15 // 6 cost + 2 safety + 7 security
+	const want = 30 // 15 cost + 15 security (per Phase 3 playbook)
 	dets := All()
 	if len(dets) != want {
 		t.Fatalf("All() returned %d detectors, want %d", len(dets), want)

@@ -93,24 +93,38 @@ func Run(workloads []parser.Workload, dets []Detector) []Finding {
 // detectors in one place.
 func All() []Detector {
 	return []Detector{
-		// Cost / efficiency
+		// ---- Cost / efficiency (15) ----
 		newCPUOverprovisioned(),
 		newMemoryOverprovisioned(),
 		newCPULimitFarAboveRequest(),
 		newMemoryLimitFarAboveRequest(),
+		newOversizedCPULimit(),
+		newOversizedMemoryLimit(),
 		newReplicasTooHigh(),
+		newExcessiveReplicaCount(),
 		newUnboundedImageTag(),
-		// Safety (cost-adjacent)
-		newMissingMemoryLimit(),
-		newMissingCPULimit(),
-		// Security
+		newCPUWithoutMemoryRequest(),
+		newMemoryWithoutCPURequest(),
+		newCPURequestEqualsLimit(),
+		newMemoryRequestEqualsLimit(),
+		newTinyCPURequest(),
+		newTinyMemoryRequest(),
+		// ---- Security (15) ----
+		newMissingCPULimit(),       // also surfaces in audit
+		newMissingMemoryLimit(),    // also surfaces in audit
 		newImagePinnedLatest(),
 		newRunAsRoot(),
+		newRunsAsUIDZero(),
 		newPrivilegedContainer(),
 		newHostNetwork(),
+		newHostPID(),
+		newHostIPC(),
 		newReadOnlyRootFSMissing(),
 		newAllowPrivilegeEscalation(),
 		newHostPathVolume(),
+		newDangerousCapabilityAdded(),
+		newCapabilitiesNotDroppedAll(),
+		newServiceAccountTokenAutomount(),
 	}
 }
 
