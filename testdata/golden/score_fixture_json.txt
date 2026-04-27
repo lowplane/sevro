@@ -1,0 +1,72 @@
+{
+  "accuracy_disclosure": "Sandbox accuracy: ±40%. Install the Sevro agent for exact numbers (sevro.dev/get).",
+  "score_report": {
+    "workloads_analyzed": 5,
+    "source": "/home/shivam/Desktop/Merge/sevro/testdata/fixtures/basic-chart/values.yaml",
+    "score": 32,
+    "confidence_band": "low",
+    "penalties": {
+      "cpu-overprovisioned": 10,
+      "image-pinned-latest": 20,
+      "memory-overprovisioned": 10,
+      "missing-cpu-limit": 3,
+      "missing-memory-limit": 25
+    },
+    "findings": [
+      {
+        "DetectorID": "cpu-overprovisioned",
+        "Workload": "api",
+        "Title": "CPU request appears overprovisioned",
+        "Detail": "Request 2 vs limit 2.5 — typical utilization rarely justifies this ratio. Consider halving the request.",
+        "MonthlyUSDCents": 2920,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "memory-overprovisioned",
+        "Workload": "api",
+        "Title": "Memory request appears overprovisioned",
+        "Detail": "Request 1.6Gi vs limit 2Gi — typical utilization rarely justifies this ratio. Consider halving the request.",
+        "MonthlyUSDCents": 279,
+        "Severity": "MED",
+        "Confidence": "medium"
+      },
+      {
+        "DetectorID": "image-pinned-latest",
+        "Workload": "cache",
+        "Title": "Image not pinned to a stable tag",
+        "Detail": "Image redis:latest uses :latest. The same tag can resolve to different bytes across deploys; rollback becomes ambiguous. Pin to an immutable digest or version tag.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "high"
+      },
+      {
+        "DetectorID": "image-pinned-latest",
+        "Workload": "logger",
+        "Title": "Image not pinned to a stable tag",
+        "Detail": "Image fluentd uses (no tag). The same tag can resolve to different bytes across deploys; rollback becomes ambiguous. Pin to an immutable digest or version tag.",
+        "MonthlyUSDCents": 0,
+        "Severity": "MED",
+        "Confidence": "high"
+      },
+      {
+        "DetectorID": "missing-memory-limit",
+        "Workload": "worker",
+        "Title": "Memory limit not set",
+        "Detail": "This workload declares a memory request but no limit. Without a limit it can consume node memory unbounded and evict neighbours under pressure. Set a limit at or above your observed P95.",
+        "MonthlyUSDCents": 0,
+        "Severity": "HIGH",
+        "Confidence": "high"
+      },
+      {
+        "DetectorID": "missing-cpu-limit",
+        "Workload": "worker",
+        "Title": "CPU limit not set",
+        "Detail": "This workload declares a CPU request but no limit. Some teams omit CPU limits intentionally to avoid throttling; others expect predictable scheduling. Confirm this is the intended posture.",
+        "MonthlyUSDCents": 0,
+        "Severity": "LOW",
+        "Confidence": "medium"
+      }
+    ]
+  }
+}

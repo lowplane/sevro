@@ -1,0 +1,18 @@
+────────────────────────────────────────────────────────────────────────────────
+  sevro score   Helm chart efficiency score
+────────────────────────────────────────────────────────────────────────────────
+
+  source: /home/shivam/Desktop/Merge/sevro/testdata/fixtures/basic-chart/values.yaml
+  workloads analyzed: 5
+
+  score:  32 / 100    ●○○ low
+
+  Penalty breakdown
+    missing-memory-limit               -25
+    missing-cpu-limit                  -3
+    cpu-overprovisioned                -10
+    memory-overprovisioned             -10
+    image-pinned-latest                -20
+
+────────────────────────────────────────────────────────────────────────────────
+  Sandbox accuracy: ±40%. Install the Sevro agent for exact numbers (sevro.dev/get).

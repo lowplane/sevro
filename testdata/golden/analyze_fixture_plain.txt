@@ -1,0 +1,51 @@
+────────────────────────────────────────────────────────────────────────────────
+  sevro   Helm chart cost & security analysis
+────────────────────────────────────────────────────────────────────────────────
+
+  source: /home/shivam/Desktop/Merge/sevro/testdata/fixtures/basic-chart/values.yaml
+  5 workloads · 6 findings
+
+   MED    api   save ~$29.20 /mo
+    CPU request appears overprovisioned
+    Request 2 vs limit 2.5 — typical utilization rarely justifies this
+    ratio. Consider halving the request.
+    confidence: ●●○ medium
+
+   MED    api   save ~$2.79 /mo
+    Memory request appears overprovisioned
+    Request 1.6Gi vs limit 2Gi — typical utilization rarely justifies this
+    ratio. Consider halving the request.
+    confidence: ●●○ medium
+
+   MED    cache
+    Image not pinned to a stable tag
+    Image redis:latest uses :latest. The same tag can resolve to different
+    bytes across deploys; rollback becomes ambiguous. Pin to an immutable
+    digest or version tag.
+    confidence: ●●● high
+
+   MED    logger
+    Image not pinned to a stable tag
+    Image fluentd uses (no tag). The same tag can resolve to different bytes
+    across deploys; rollback becomes ambiguous. Pin to an immutable digest or
+    version tag.
+    confidence: ●●● high
+
+   HIGH   worker
+    Memory limit not set
+    This workload declares a memory request but no limit. Without a limit it
+    can consume node memory unbounded and evict neighbours under pressure. Set
+    a limit at or above your observed P95.
+    confidence: ●●● high
+
+   LOW    worker
+    CPU limit not set
+    This workload declares a CPU request but no limit. Some teams omit CPU
+    limits intentionally to avoid throttling; others expect predictable
+    scheduling. Confirm this is the intended posture.
+    confidence: ●●○ medium
+
+────────────────────────────────────────────────────────────────────────────────
+  estimated monthly savings: $31.99 /mo   (±40%)
+  Sandbox accuracy: ±40%. Install the Sevro agent for exact numbers (sevro.dev/get).
+  → install the agent for exact numbers: sevro.dev/get (https://sevro.dev/get)

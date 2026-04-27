@@ -1,0 +1,24 @@
+────────────────────────────────────────────────────────────────────────────────
+  sevro   Helm chart cost & security analysis
+────────────────────────────────────────────────────────────────────────────────
+
+  source: /home/shivam/Desktop/Merge/sevro/testdata/fixtures/basic-chart/values.yaml
+  5 workloads · 2 findings
+
+   MED    cache
+    Image not pinned to a stable tag
+    Image redis:latest uses :latest. The same tag can resolve to different
+    bytes across deploys; rollback becomes ambiguous. Pin to an immutable
+    digest or version tag.
+    confidence: ●●● high
+
+   MED    logger
+    Image not pinned to a stable tag
+    Image fluentd uses (no tag). The same tag can resolve to different bytes
+    across deploys; rollback becomes ambiguous. Pin to an immutable digest or
+    version tag.
+    confidence: ●●● high
+
+────────────────────────────────────────────────────────────────────────────────
+  Sandbox accuracy: ±40%. Install the Sevro agent for exact numbers (sevro.dev/get).
+  → install the agent for exact numbers: sevro.dev/get (https://sevro.dev/get)
