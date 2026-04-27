@@ -150,14 +150,49 @@ The pipeline is deterministic. The same input always produces the same output. T
 | `analyze [chart]` | Run full cost and security analysis on a chart or values file | Stable |
 | `demo` | Run analysis on a bundled demo chart | Stable |
 | `diff <a> <b>` | Show cost delta between two values files | Stable |
-| `score [chart]` | Assign a 0-100 efficiency score | Stable |
-| `audit [chart]` | Security findings only (no cost) | Beta |
-| `watch [chart]` | Re-analyze on file change | Beta |
-| `compare <a> <b>` | Side-by-side comparison of two charts | Beta |
+| `score [chart]` | Assign a 0–100 efficiency score with confidence band | Stable |
+| `audit [chart]` | Security findings only (no cost detectors) | Stable |
+| `compare <a> <b>` | Currently an alias for `diff` (richer output ships in Phase 7) | Beta |
+| `watch [chart]` | Re-analyze on file change | Coming soon |
 | `--version` | Print version and exit | Stable |
 | `--help` | Help for any command | Stable |
 
-Every command supports `--json`, `--offline`, `--no-color`, and `--quiet`.
+### Filter and exit-code flags
+
+| Flag | Effect |
+| --- | --- |
+| `--json` | Emit machine-readable JSON (every command) |
+| `--no-color` / `NO_COLOR=1` | Disable ANSI output; auto-detected when piped |
+| `--severity low\|med\|high` | Drop findings below the threshold (analyze) |
+| `--detector <id>` | Repeatable allow-list, e.g. `--detector cpu-overprovisioned --detector image-pinned-latest` |
+| `--fail-on low\|med\|high` | Exit code 1 if any finding meets/exceeds the severity (analyze, audit) |
+| `--config <path>` | Load `.sevro.yaml` from a custom path (default `./.sevro.yaml` or `$SEVRO_CONFIG`) |
+
+### Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | No findings at or above the threshold (or threshold unset) |
+| `1` | Findings reported and `--fail-on` threshold met |
+| `2` | Invocation error (bad path, malformed YAML, invalid flag) |
+| `3` | Unexpected runtime error |
+
+### Persistent config
+
+A `.sevro.yaml` in the working directory (or pointed at via `--config` / `SEVRO_CONFIG`) lets you persist defaults:
+
+```yaml
+# .sevro.yaml
+min_severity: med
+fail_on: high
+detectors:
+  - cpu-overprovisioned
+  - missing-memory-limit
+  - image-pinned-latest
+no_color: false
+```
+
+Flags always override config values when supplied.
 
 ---
 
