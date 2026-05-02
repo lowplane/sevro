@@ -28,6 +28,7 @@ func (replicasTooHigh) Run(w parser.Workload) []Finding {
 	if w.HasHPA {
 		return nil
 	}
+	suggested := replicasThreshold
 	return []Finding{{
 		DetectorID: "replicas-too-high",
 		Workload:   w.Name,
@@ -35,6 +36,14 @@ func (replicasTooHigh) Run(w parser.Workload) []Finding {
 		Detail:     fmt.Sprintf("Replicas set to %d without an HPA. Static high replica counts pay for unused capacity 24/7. Either enable autoscaling.enabled=true or right-size the static count to your observed P95.", w.Replicas),
 		Severity:   SeverityMed,
 		Confidence: ConfidenceMed,
+		Signal: &Signal{
+			Label:       "replicas",
+			Have:        float64(suggested),
+			Want:        float64(w.Replicas),
+			HaveDisplay: fmt.Sprintf("%d", suggested),
+			WantDisplay: fmt.Sprintf("%d", w.Replicas),
+			Note:        fmt.Sprintf("%dx target", w.Replicas/suggested),
+		},
 		// No dollar estimate — depends entirely on per-replica resource
 		// requests, which the cpu/memory-overprovisioned detectors
 		// already capture.

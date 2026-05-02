@@ -51,5 +51,13 @@ func (cpuOverprovisioned) Run(w parser.Workload) []Finding {
 		MonthlyUSDCents: monthlyCents,
 		Severity:        SeverityMed,
 		Confidence:      ConfidenceMed,
+		Signal: &Signal{
+			Label:       "CPU",
+			Have:        float64(req.Value),
+			Want:        float64(lim.Value),
+			HaveDisplay: req.String(),
+			WantDisplay: lim.String(),
+			Note:        fmt.Sprintf("%.0f%% of limit", float64(req.Value)*100/float64(lim.Value)),
+		},
 	}}
 }

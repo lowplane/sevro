@@ -81,6 +81,44 @@ type Finding struct {
 	// keep their value — useful for synthetic findings that span
 	// categories.
 	Category Category
+
+	// Signal carries the quantitative evidence for findings that have
+	// it (e.g. "request 200m vs limit 2000m"). Renderers draw a bar
+	// from this when present; nil for findings without numeric
+	// evidence (host-network, runs-as-root, etc.). Detectors that
+	// surface ratios MUST populate it — that bar is the screenshot.
+	Signal *Signal
+}
+
+// Signal is the structured evidence behind a Finding. Renderers turn
+// it into a request-vs-limit bar:
+//
+//	request 200m ████████████░░░░░░░░ 1 limit  (5x burst)
+//
+// Have / Want share a unit; HaveDisplay / WantDisplay are the
+// human-readable original tokens (e.g. "200m", "2Gi"). Note is
+// optional commentary the renderer prints to the right of the bar
+// (utilization headroom, burst ratio, percentile).
+type Signal struct {
+	// Label identifies the dimension being shown (e.g. "CPU",
+	// "memory", "replicas"). Renderers may align by label.
+	Label string `json:"label"`
+
+	// Have is the smaller / current value (request, observed,
+	// floor). Want is the larger / target value (limit, recommended,
+	// ceiling). Both are in the same unit; renderers use their ratio
+	// to draw the bar.
+	Have float64 `json:"have"`
+	Want float64 `json:"want"`
+
+	// Display strings preserve the chart's original tokens so users
+	// see "200m" rather than "0.2".
+	HaveDisplay string `json:"have_display"`
+	WantDisplay string `json:"want_display"`
+
+	// Note is short commentary printed next to the bar (e.g.
+	// "10x burst", "80% headroom"). Optional.
+	Note string `json:"note,omitempty"`
 }
 
 // Detector inspects a parser.Workload and returns zero or more

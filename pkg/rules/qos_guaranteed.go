@@ -37,6 +37,14 @@ func (cpuRequestEqualsLimit) Run(w parser.Workload) []Finding {
 		Detail:     fmt.Sprintf("Request and limit both set to %s, putting the pod in Guaranteed QoS — top eviction priority but zero burst headroom. Confirm this is intentional for an SLO-bound workload; otherwise lower the request to allow the scheduler to bin-pack more densely.", w.Requests.CPU),
 		Severity:   SeverityLow,
 		Confidence: ConfidenceMed,
+		Signal: &Signal{
+			Label:       "CPU",
+			Have:        float64(w.Requests.CPU.Value),
+			Want:        float64(w.Limits.CPU.Value),
+			HaveDisplay: w.Requests.CPU.String(),
+			WantDisplay: w.Limits.CPU.String(),
+			Note:        "Guaranteed QoS",
+		},
 	}}
 }
 
@@ -61,5 +69,13 @@ func (memoryRequestEqualsLimit) Run(w parser.Workload) []Finding {
 		Detail:     fmt.Sprintf("Memory request and limit both set to %s. Memory is non-burstable anyway, so this only affects QoS class; for SLO-bound workloads it's correct, otherwise lower the request to ~P95 to free node capacity for other pods.", w.Requests.Memory),
 		Severity:   SeverityLow,
 		Confidence: ConfidenceMed,
+		Signal: &Signal{
+			Label:       "memory",
+			Have:        float64(w.Requests.Memory.Value),
+			Want:        float64(w.Limits.Memory.Value),
+			HaveDisplay: w.Requests.Memory.String(),
+			WantDisplay: w.Limits.Memory.String(),
+			Note:        "Guaranteed QoS",
+		},
 	}}
 }

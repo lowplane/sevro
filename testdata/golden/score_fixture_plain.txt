@@ -1,11 +1,12 @@
 ────────────────────────────────────────────────────────────────────────────────
-  optiqor score   Helm chart efficiency score
+  ◐  optiqor score   Helm chart efficiency grade
 ────────────────────────────────────────────────────────────────────────────────
 
-  source: /home/shivam/Desktop/optiqor/optiqor-cli/testdata/fixtures/basic-chart/values.yaml
-  workloads analyzed: 15
+  Source      /home/shivam/Desktop/optiqor/optiqor-cli/testdata/fixtures/basic-chart/values.yaml
+  Workloads   15 analyzed
 
-  score:  0 / 100    ●○○ low
+  Grade        F    better than 0% of 100 benchmark charts
+  Score       0 / 100   ●○○ low
 
   Penalty breakdown
     allow-privilege-escalation         -85
@@ -41,3 +42,4 @@
 
 ────────────────────────────────────────────────────────────────────────────────
   Sandbox accuracy: ±40%. Install the Optiqor agent for exact numbers (optiqor.dev/get).
+  Calibration: static benchmark distribution; agent install unlocks live percentile vs your fleet.

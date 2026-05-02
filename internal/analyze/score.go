@@ -4,16 +4,22 @@ import "github.com/optiqor/optiqor-cli/pkg/rules"
 
 // Score is the result of `optiqor score [chart]` — a 0-100 efficiency
 // score derived from the severities of detector findings, plus the
-// qualitative confidence band that score lives in.
+// qualitative confidence band, a letter grade, and a percentile rank
+// against the baked-in calibration distribution.
 //
 // The numerical value is "100 minus the per-finding penalty cap";
 // numerical Confidence Scores arrive in Year 2 once we have enough
 // merged-PR outcomes to calibrate. For now Confidence is qualitative.
+//
+// Grade turns the abstract score into a screenshot-friendly social
+// signal ("B+ · better than 64% of charts"); it is fully derived
+// from Value and the static distribution in [GradeFor].
 type Score struct {
 	Workloads int              `json:"workloads_analyzed"`
 	Source    string           `json:"source"`
 	Value     int              `json:"score"` // 0-100
 	Band      rules.Confidence `json:"confidence_band"`
+	Grade     Grade            `json:"grade"`
 	Penalties map[string]int   `json:"penalties"` // detector_id -> penalty points
 	Findings  []rules.Finding  `json:"findings"`
 }
@@ -51,6 +57,7 @@ func Compute(source string, workloads int, findings []rules.Finding) Score {
 		Source:    source,
 		Value:     value,
 		Band:      bandFor(value),
+		Grade:     GradeFor(value),
 		Penalties: penalties,
 		Findings:  findings,
 	}

@@ -41,6 +41,14 @@ func (cpuLimitFarAboveRequest) Run(w parser.Workload) []Finding {
 		Detail:     fmt.Sprintf("Request %s vs limit %s — a %.1fx burst window. The scheduler reserves only the request, so the pod can suddenly consume far more than its node-allocation suggests. Tighten the limit or raise the request to match observed P95.", req, lim, ratio),
 		Severity:   SeverityMed,
 		Confidence: ConfidenceMed,
+		Signal: &Signal{
+			Label:       "CPU",
+			Have:        float64(req.Value),
+			Want:        float64(lim.Value),
+			HaveDisplay: req.String(),
+			WantDisplay: lim.String(),
+			Note:        fmt.Sprintf("%.1fx burst", ratio),
+		},
 	}}
 }
 
@@ -67,5 +75,13 @@ func (memoryLimitFarAboveRequest) Run(w parser.Workload) []Finding {
 		Detail:     fmt.Sprintf("Request %s vs limit %s — a %.1fx burst window. Memory limits aren't elastic the way CPU is: a pod that climbs to its limit will OOM, taking neighbours down via node memory pressure. Tighten the limit toward observed P95.", req, lim, ratio),
 		Severity:   SeverityMed,
 		Confidence: ConfidenceMed,
+		Signal: &Signal{
+			Label:       "memory",
+			Have:        float64(req.Value),
+			Want:        float64(lim.Value),
+			HaveDisplay: req.String(),
+			WantDisplay: lim.String(),
+			Note:        fmt.Sprintf("%.1fx burst", ratio),
+		},
 	}}
 }

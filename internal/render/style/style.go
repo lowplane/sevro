@@ -34,6 +34,12 @@ type Theme struct {
 	Tagline      lipgloss.Style
 	HeaderBorder lipgloss.Style
 
+	// Boxed-finding card + signal-bar palette
+	CardBorder  lipgloss.Style
+	BarFilled   lipgloss.Style
+	BarEmpty    lipgloss.Style
+	BarOverflow lipgloss.Style // for ratios > 1 (limit < request, etc.)
+
 	// Sections
 	SectionPrimary lipgloss.Style // headline section (Cost optimizations)
 	SectionBonus   lipgloss.Style // bonus section (Security)
@@ -109,6 +115,11 @@ func NewTheme(useColor bool) Theme {
 		Tagline:      r.NewStyle().Foreground(subtle).Italic(true),
 		HeaderBorder: r.NewStyle().Foreground(border),
 
+		CardBorder:   r.NewStyle().Foreground(border),
+		BarFilled:    r.NewStyle().Foreground(green),
+		BarEmpty:     r.NewStyle().Foreground(border),
+		BarOverflow:  r.NewStyle().Foreground(red),
+
 		SectionPrimary: r.NewStyle().Foreground(brand).Bold(true),
 		SectionBonus:   r.NewStyle().Foreground(amber).Bold(true),
 		SectionSubtle:  r.NewStyle().Foreground(subtle).Italic(true),
@@ -147,6 +158,10 @@ func plainTheme() Theme {
 		BrandMark:      plain,
 		Tagline:        plain,
 		HeaderBorder:   plain,
+		CardBorder:     plain,
+		BarFilled:      plain,
+		BarEmpty:       plain,
+		BarOverflow:    plain,
 		SectionPrimary: plain,
 		SectionBonus:   plain,
 		SectionSubtle:  plain,
@@ -187,6 +202,46 @@ func (t Theme) DividerLine(width int) string {
 		width = 64
 	}
 	return t.Divider.Render(repeat("─", width))
+}
+
+// SignalBar renders a horizontal ratio bar of the form
+//
+//	████████████░░░░░░░░  (have/want = 0.6)
+//
+// width is the total cell count; have and want are in the same unit
+// and need not be normalized — the bar shows have/want as a fraction
+// of width. When have > want (over-saturated) the overflow tail is
+// drawn in BarOverflow so it visually screams.
+//
+// Returns a fixed-rune-width string regardless of color setting; the
+// caller is responsible for any leading/trailing labels.
+func (t Theme) SignalBar(have, want float64, width int) string {
+	if width <= 0 {
+		width = 20
+	}
+	if want <= 0 {
+		// Degenerate: render an empty bar. Renderers should avoid
+		// calling this when want is zero, but we tolerate it.
+		return t.BarEmpty.Render(repeat("░", width))
+	}
+	ratio := have / want
+	if ratio < 0 {
+		ratio = 0
+	}
+
+	if ratio <= 1 {
+		filled := int(ratio*float64(width) + 0.5)
+		if filled > width {
+			filled = width
+		}
+		return t.BarFilled.Render(repeat("█", filled)) +
+			t.BarEmpty.Render(repeat("░", width-filled))
+	}
+
+	// Over-saturated: fill the whole bar in overflow tone so the eye
+	// catches it. We don't try to encode the magnitude — the Note
+	// (e.g. "10x burst") carries that.
+	return t.BarOverflow.Render(repeat("█", width))
 }
 
 // SectionRule renders a labelled section divider using heavy hyphens

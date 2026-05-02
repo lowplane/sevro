@@ -20,6 +20,7 @@ import (
 	"github.com/optiqor/optiqor-cli/internal/config"
 	"github.com/optiqor/optiqor-cli/internal/render"
 	"github.com/optiqor/optiqor-cli/internal/render/style"
+	roastpkg "github.com/optiqor/optiqor-cli/internal/roast"
 	"github.com/optiqor/optiqor-cli/internal/share"
 	"github.com/optiqor/optiqor-cli/pkg/rules"
 )
@@ -148,7 +149,8 @@ side-effect of parsing — they are not the headline feature.
 		Example: `  optiqor analyze ./my-chart
   optiqor analyze ./values.yaml --json
   optiqor analyze ./chart --severity=med --fail-on=high
-  optiqor analyze ./chart --detector cpu-overprovisioned --detector missing-memory-limit`,
+  optiqor analyze ./chart --detector cpu-overprovisioned --detector missing-memory-limit
+  optiqor analyze ./my-chart --roast    # same findings, snarkier titles`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			path := "."
@@ -183,14 +185,16 @@ side-effect of parsing — they are not the headline feature.
 				MinSeverity: rules.Severity(toUpper(effSev)),
 				DetectorIDs: effDetectors,
 			})
-			if err := emitReport(cmd, rep, jsonOut, outputPath); err != nil {
+			if roast {
+				rep = roastpkg.Apply(rep)
+			}
+			if err := emitReport(cmd, rep, jsonOut, outputPath, roast); err != nil {
 				return err
 			}
 			if shareFlag {
 				emitShareURL(cmd, rep)
 			}
 			_ = offline
-			_ = roast
 			return checkFailOn(rep, effFailOn)
 		},
 	}
@@ -208,7 +212,10 @@ side-effect of parsing — they are not the headline feature.
 // emitReport renders the report in JSON or styled text. When
 // outputPath is non-empty the rendered bytes go to that file instead
 // of stdout (CI use case: `optiqor analyze --json --output result.json`).
-func emitReport(cmd *cobra.Command, rep render.Report, jsonOut bool, outputPath string) error {
+// The roast flag swaps the brand tagline and footer quip for the
+// `--roast` variants; finding titles are roasted upstream by the
+// analyze command before the report reaches here.
+func emitReport(cmd *cobra.Command, rep render.Report, jsonOut bool, outputPath string, roast bool) error {
 	w, closeFn, err := openOutput(cmd, outputPath)
 	if err != nil {
 		return err
@@ -217,7 +224,11 @@ func emitReport(cmd *cobra.Command, rep render.Report, jsonOut bool, outputPath 
 	if jsonOut {
 		return render.JSON(w, rep)
 	}
-	return render.Text(w, rep, renderOpts(cmd))
+	opts := renderOpts(cmd)
+	if roast {
+		opts = renderOptsRoast(cmd)
+	}
+	return render.Text(w, rep, opts)
 }
 
 // openOutput resolves the destination: stdout when path is empty;
@@ -315,23 +326,34 @@ func toUpper(s string) string {
 var demoChart []byte
 
 func newDemoCmd() *cobra.Command {
-	var jsonOut bool
+	var (
+		jsonOut bool
+		roast   bool
+	)
 	cmd := &cobra.Command{
 		Use:     "demo",
 		Short:   "Run analysis on a bundled demo chart",
-		Example: `  optiqor demo`,
+		Example: "  optiqor demo\n  optiqor demo --roast",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			rep, err := analyze.Run(bytesReader(demoChart), analyze.Options{Source: "demo"})
 			if err != nil {
 				return err
 			}
+			if roast {
+				rep = roastpkg.Apply(rep)
+			}
 			if jsonOut {
 				return render.JSON(cmd.OutOrStdout(), rep)
 			}
-			return render.Text(cmd.OutOrStdout(), rep, renderOpts(cmd))
+			opts := renderOpts(cmd)
+			if roast {
+				opts = renderOptsRoast(cmd)
+			}
+			return render.Text(cmd.OutOrStdout(), rep, opts)
 		},
 	}
 	cmd.Flags().BoolVar(&jsonOut, "json", false, "emit machine-readable JSON")
+	cmd.Flags().BoolVar(&roast, "roast", false, "humorous output (findings stay accurate)")
 	return cmd
 }
 
@@ -342,6 +364,18 @@ func renderOpts(cmd *cobra.Command) render.Options {
 		Color: colorPolicyFrom(cmd.Context()),
 		Width: terminalWidth(),
 	}
+}
+
+// renderOptsRoast extends renderOpts with the roast-mode strings so
+// the renderer prints the playful tagline + footer quip without
+// importing the roast package itself. Findings are roasted upstream
+// in the analyze command (see internal/roast).
+func renderOptsRoast(cmd *cobra.Command) render.Options {
+	o := renderOpts(cmd)
+	o.Roast = true
+	o.RoastTagline = roastpkg.Tagline
+	o.RoastFooter = roastpkg.FooterQuip
+	return o
 }
 
 // resolveColor decides whether to emit ANSI for a given command.
@@ -500,7 +534,7 @@ func newAuditCmd() *cobra.Command {
 				return err
 			}
 			rep = analyze.Filter(rep, analyze.FilterOptions{SecurityOnly: true})
-			if err := emitReport(cmd, rep, jsonOut, outputPath); err != nil {
+			if err := emitReport(cmd, rep, jsonOut, outputPath, false); err != nil {
 				return err
 			}
 			return checkFailOn(rep, failOn)

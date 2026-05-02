@@ -5,6 +5,11 @@
     "source": "/home/shivam/Desktop/optiqor/optiqor-cli/testdata/fixtures/basic-chart/values.yaml",
     "score": 0,
     "confidence_band": "low",
+    "grade": {
+      "letter": "F",
+      "percentile_rank": 0,
+      "sample_size": 100
+    },
     "penalties": {
       "allow-privilege-escalation": 85,
       "capabilities-not-dropped-all": 100,
@@ -46,7 +51,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "privileged-container",
@@ -56,7 +62,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "run-as-root",
@@ -66,7 +73,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -76,7 +84,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -86,7 +95,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "allow-privilege-escalation",
@@ -96,7 +106,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -106,7 +117,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-overprovisioned",
@@ -116,7 +128,15 @@
         "MonthlyUSDCents": 2920,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 2000,
+          "want": 2500,
+          "have_display": "2",
+          "want_display": "2.5",
+          "note": "80% of limit"
+        }
       },
       {
         "DetectorID": "memory-overprovisioned",
@@ -126,7 +146,15 @@
         "MonthlyUSDCents": 279,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "memory",
+          "have": 1717986918,
+          "want": 2147483648,
+          "have_display": "1.6Gi",
+          "want_display": "2Gi",
+          "note": "80% of limit"
+        }
       },
       {
         "DetectorID": "run-as-root",
@@ -136,7 +164,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -146,7 +175,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "read-only-root-fs-missing",
@@ -156,7 +186,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -166,7 +197,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-limit-far-above-request",
@@ -176,7 +208,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 200,
+          "want": 2000,
+          "have_display": "200m",
+          "want_display": "2",
+          "note": "10.0x burst"
+        }
       },
       {
         "DetectorID": "memory-limit-far-above-request",
@@ -186,7 +226,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "memory",
+          "have": 268435456,
+          "want": 4294967296,
+          "have_display": "256Mi",
+          "want_display": "4Gi",
+          "note": "16.0x burst"
+        }
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -196,7 +244,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "allow-privilege-escalation",
@@ -206,7 +255,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -216,7 +266,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-limit-far-above-request",
@@ -226,7 +277,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 100,
+          "want": 500,
+          "have_display": "100m",
+          "want_display": "500m",
+          "note": "5.0x burst"
+        }
       },
       {
         "DetectorID": "image-pinned-latest",
@@ -236,7 +295,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -246,7 +306,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "read-only-root-fs-missing",
@@ -256,7 +317,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-limit-far-above-request",
@@ -266,7 +328,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 100,
+          "want": 500,
+          "have_display": "100m",
+          "want_display": "500m",
+          "note": "5.0x burst"
+        }
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -276,7 +346,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -286,7 +357,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "unbounded-image-tag",
@@ -296,7 +368,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "read-only-root-fs-missing",
@@ -306,7 +379,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-overprovisioned",
@@ -316,7 +390,15 @@
         "MonthlyUSDCents": 292,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 200,
+          "want": 200,
+          "have_display": "200m",
+          "want_display": "200m",
+          "note": "100% of limit"
+        }
       },
       {
         "DetectorID": "memory-overprovisioned",
@@ -326,7 +408,15 @@
         "MonthlyUSDCents": 43,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "memory",
+          "have": 268435456,
+          "want": 268435456,
+          "have_display": "256Mi",
+          "want_display": "256Mi",
+          "note": "100% of limit"
+        }
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -336,7 +426,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-request-equals-limit",
@@ -346,7 +437,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 200,
+          "want": 200,
+          "have_display": "200m",
+          "want_display": "200m",
+          "note": "Guaranteed QoS"
+        }
       },
       {
         "DetectorID": "memory-request-equals-limit",
@@ -356,7 +455,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "memory",
+          "have": 268435456,
+          "want": 268435456,
+          "have_display": "256Mi",
+          "want_display": "256Mi",
+          "note": "Guaranteed QoS"
+        }
       },
       {
         "DetectorID": "cpu-overprovisioned",
@@ -366,7 +473,15 @@
         "MonthlyUSDCents": 5,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 5,
+          "want": 5,
+          "have_display": "5m",
+          "want_display": "5m",
+          "note": "100% of limit"
+        }
       },
       {
         "DetectorID": "cpu-request-equals-limit",
@@ -376,7 +491,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 5,
+          "want": 5,
+          "have_display": "5m",
+          "want_display": "5m",
+          "note": "Guaranteed QoS"
+        }
       },
       {
         "DetectorID": "cpu-without-memory-request",
@@ -386,7 +509,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "high",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "tiny-cpu-request",
@@ -396,7 +520,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "high",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "allow-privilege-escalation",
@@ -406,7 +531,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -416,7 +542,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-limit-far-above-request",
@@ -426,7 +553,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 100,
+          "want": 500,
+          "have_display": "100m",
+          "want_display": "500m",
+          "note": "5.0x burst"
+        }
       },
       {
         "DetectorID": "image-pinned-latest",
@@ -436,7 +571,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -446,7 +582,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "read-only-root-fs-missing",
@@ -456,7 +593,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "excessive-replica-count",
@@ -466,7 +604,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "oversized-cpu-limit",
@@ -476,7 +615,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "oversized-memory-limit",
@@ -486,7 +626,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "replicas-too-high",
@@ -496,7 +637,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "replicas",
+          "have": 5,
+          "want": 25,
+          "have_display": "5",
+          "want_display": "25",
+          "note": "5x target"
+        }
       },
       {
         "DetectorID": "host-ipc",
@@ -506,7 +655,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "missing-memory-limit",
@@ -516,7 +666,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "memory-without-cpu-request",
@@ -526,7 +677,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "high",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "tiny-memory-request",
@@ -536,7 +688,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "high",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": null
       },
       {
         "DetectorID": "dangerous-capability-added",
@@ -546,7 +699,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "host-pid",
@@ -556,7 +710,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "run-as-root",
@@ -566,7 +721,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "runs-as-uid-zero",
@@ -576,7 +732,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "allow-privilege-escalation",
@@ -586,7 +743,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -596,7 +754,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-limit-far-above-request",
@@ -606,7 +765,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 100,
+          "want": 500,
+          "have_display": "100m",
+          "want_display": "500m",
+          "note": "5.0x burst"
+        }
       },
       {
         "DetectorID": "read-only-root-fs-missing",
@@ -616,7 +783,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "allow-privilege-escalation",
@@ -626,7 +794,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -636,7 +805,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "cpu-limit-far-above-request",
@@ -646,7 +816,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "CPU",
+          "have": 100,
+          "want": 500,
+          "have_display": "100m",
+          "want_display": "500m",
+          "note": "5.0x burst"
+        }
       },
       {
         "DetectorID": "replicas-too-high",
@@ -656,7 +834,15 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "cost"
+        "Category": "cost",
+        "Signal": {
+          "label": "replicas",
+          "have": 5,
+          "want": 10,
+          "have_display": "5",
+          "want_display": "10",
+          "note": "2x target"
+        }
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -666,7 +852,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "read-only-root-fs-missing",
@@ -676,7 +863,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "host-network",
@@ -686,7 +874,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "host-path-volume",
@@ -696,7 +885,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -706,7 +896,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -716,7 +907,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "missing-memory-limit",
@@ -726,7 +918,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "HIGH",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "allow-privilege-escalation",
@@ -736,7 +929,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "capabilities-not-dropped-all",
@@ -746,7 +940,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "high",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "service-account-token-automount",
@@ -756,7 +951,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "MED",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "missing-cpu-limit",
@@ -766,7 +962,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       },
       {
         "DetectorID": "read-only-root-fs-missing",
@@ -776,7 +973,8 @@
         "MonthlyUSDCents": 0,
         "Severity": "LOW",
         "Confidence": "medium",
-        "Category": "security"
+        "Category": "security",
+        "Signal": null
       }
     ]
   }

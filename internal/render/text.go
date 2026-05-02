@@ -19,6 +19,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
+
 	"github.com/optiqor/optiqor-cli/internal/render/style"
 	"github.com/optiqor/optiqor-cli/pkg/rules"
 )
@@ -43,6 +45,17 @@ const (
 	annualTeaserMin  = 1_00 // show annual projection only above $1/mo savings
 	bonusSectionName = "Security findings"
 	costSectionName  = "Cost optimizations"
+
+	// cardMinInner is the smallest interior width we'll render a
+	// boxed cost finding at. Below this the layout breaks down; we
+	// fall back to a flat (un-boxed) rendering on very narrow
+	// terminals.
+	cardMinInner = 50
+
+	// signalBarWidth is the rune count of the request/limit bar
+	// inside a card. Wide enough to be expressive, narrow enough to
+	// leave room for the value labels.
+	signalBarWidth = 24
 )
 
 // Report is the renderer-facing view of an analysis run.
@@ -57,6 +70,20 @@ type Report struct {
 type Options struct {
 	Color bool // false → plain ASCII, no ANSI; true → branded styled output
 	Width int  // terminal width; 0 → defaultWidth
+
+	// Roast swaps the brand tagline and footer quip for the playful
+	// `--roast` variants. Findings themselves are roasted upstream
+	// (see internal/roast); the renderer only reads the strings here
+	// so it stays unaware of where the roast titles came from.
+	Roast bool
+
+	// RoastTagline / RoastFooter override the default tagline and
+	// footer when Roast is true. Empty values fall back to the
+	// non-roast copy. Callers that don't need to override leave them
+	// empty; tests use them to assert the wiring without depending
+	// on the internal/roast package.
+	RoastTagline string
+	RoastFooter  string
 }
 
 // MonthlySavingsUSDCents totals the predicted savings across findings.
@@ -83,12 +110,12 @@ func Text(w io.Writer, r Report, opts Options) error {
 	cost, security := splitByCategory(r.Findings)
 
 	var b strings.Builder
-	writeHeader(&b, t, width)
+	writeHeader(&b, t, width, opts)
 	writeSummary(&b, t, r, len(cost), len(security))
 
 	if len(cost) == 0 && len(security) == 0 {
 		fmt.Fprintf(&b, "\n%s%s\n\n", contentIndent, t.OK.Render("✓ Clean. No findings."))
-		writeFooter(&b, t, width, 0)
+		writeFooter(&b, t, width, 0, opts)
 		_, err := io.WriteString(w, b.String())
 		return err
 	}
@@ -100,7 +127,7 @@ func Text(w io.Writer, r Report, opts Options) error {
 		writeSecuritySection(&b, t, width, security)
 	}
 
-	writeFooter(&b, t, width, r.MonthlySavingsUSDCents())
+	writeFooter(&b, t, width, r.MonthlySavingsUSDCents(), opts)
 	_, err := io.WriteString(w, b.String())
 	return err
 }
@@ -168,11 +195,15 @@ func splitByCategory(findings []rules.Finding) (cost, security []rules.Finding) 
 	return cost, security
 }
 
-func writeHeader(b *strings.Builder, t style.Theme, width int) {
+func writeHeader(b *strings.Builder, t style.Theme, width int, opts Options) {
 	div := t.DividerLine(width)
 	mark := t.BrandMark.Render(style.BrandGlyph)
 	brand := t.Brand.Render(BrandName)
-	tag := t.Tagline.Render(BrandTagline)
+	taglineText := BrandTagline
+	if opts.Roast && opts.RoastTagline != "" {
+		taglineText = opts.RoastTagline
+	}
+	tag := t.Tagline.Render(taglineText)
 	fmt.Fprintf(b, "%s\n", div)
 	fmt.Fprintf(b, "%s%s  %s\n", contentIndent, mark, brand)
 	fmt.Fprintf(b, "%s%s\n", contentIndent, tag)
@@ -238,22 +269,75 @@ func writeCostSection(b *strings.Builder, t style.Theme, width int, findings []r
 	b.WriteString("\n")
 }
 
+// writeCostFinding renders a single cost-section finding as a boxed
+// "card" with a header (severity · workload · savings), an optional
+// signal bar (request/limit ratio + commentary), the body text, and
+// a confidence footer. On very narrow terminals (<cardMinInner inner
+// width) it gracefully degrades to a flat layout.
 func writeCostFinding(b *strings.Builder, t style.Theme, f rules.Finding, width int) {
-	badge := t.SeverityBadge(string(f.Severity))
-	wl := t.Workload.Render(f.Workload)
-
-	if f.MonthlyUSDCents > 0 {
-		savings := t.Savings.Render("save ~$" + formatCents(f.MonthlyUSDCents) + "/mo")
-		fmt.Fprintf(b, "%s%s  %s   %s\n", contentIndent, badge, wl, savings)
-	} else {
-		fmt.Fprintf(b, "%s%s  %s\n", contentIndent, badge, wl)
+	innerWidth := width - len(contentIndent) - 2 // 2 = "│ " + " │"
+	if innerWidth < cardMinInner {
+		writeCostFindingFlat(b, t, f, width)
+		return
 	}
 
 	title := f.Title
 	if title == "" && f.DetectorID != "" {
 		title = f.DetectorID
 	}
+
+	// Header line: ┌─ HIGH · workload ──────── save ~$29/mo ─┐
+	left := fmt.Sprintf(" %s · %s ",
+		strings.TrimSpace(string(f.Severity)),
+		f.Workload,
+	)
+	right := ""
+	if f.MonthlyUSDCents > 0 {
+		right = " save ~$" + formatCents(f.MonthlyUSDCents) + "/mo "
+	}
+	writeCardHeaderRule(b, t, f.Severity, left, right, innerWidth)
+
+	cardLine(b, t, innerWidth, "")
+	cardLine(b, t, innerWidth, t.Title.Render(title))
+	if f.Signal != nil {
+		cardLine(b, t, innerWidth, "")
+		cardLine(b, t, innerWidth, formatSignalLine(t, *f.Signal))
+	}
+	cardLine(b, t, innerWidth, "")
+	for _, line := range wrap(f.Detail, innerWidth-2) {
+		cardLine(b, t, innerWidth, t.Detail.Render(line))
+	}
+	cardLine(b, t, innerWidth, "")
+	cardLine(b, t, innerWidth, fmt.Sprintf("%s %s",
+		t.Muted.Render("confidence:"),
+		t.ConfidenceDots(string(f.Confidence)),
+	))
+
+	// Bottom rule
+	fmt.Fprintf(b, "%s%s\n", contentIndent,
+		t.CardBorder.Render("└"+strings.Repeat("─", innerWidth+2)+"┘"),
+	)
+}
+
+// writeCostFindingFlat is the fall-back layout used when the terminal
+// is too narrow to render a card cleanly. Identical content, no box.
+func writeCostFindingFlat(b *strings.Builder, t style.Theme, f rules.Finding, width int) {
+	badge := t.SeverityBadge(string(f.Severity))
+	wl := t.Workload.Render(f.Workload)
+	if f.MonthlyUSDCents > 0 {
+		savings := t.Savings.Render("save ~$" + formatCents(f.MonthlyUSDCents) + "/mo")
+		fmt.Fprintf(b, "%s%s  %s   %s\n", contentIndent, badge, wl, savings)
+	} else {
+		fmt.Fprintf(b, "%s%s  %s\n", contentIndent, badge, wl)
+	}
+	title := f.Title
+	if title == "" && f.DetectorID != "" {
+		title = f.DetectorID
+	}
 	fmt.Fprintf(b, "%s%s\n", findingIndent, t.Title.Render(title))
+	if f.Signal != nil {
+		fmt.Fprintf(b, "%s%s\n", findingIndent, formatSignalLine(t, *f.Signal))
+	}
 	for _, line := range wrap(f.Detail, width-len(findingIndent)) {
 		fmt.Fprintf(b, "%s%s\n", findingIndent, t.Detail.Render(line))
 	}
@@ -261,6 +345,185 @@ func writeCostFinding(b *strings.Builder, t style.Theme, f rules.Finding, width 
 		t.Muted.Render("confidence:"),
 		t.ConfidenceDots(string(f.Confidence)),
 	)
+}
+
+// writeCardHeaderRule writes the top of a card with embedded labels:
+//
+//	┌─ HIGH · api ─────────────────── save ~$29.20/mo ─┐
+//
+// The severity word inside the rule is colored by the severity. The
+// rule is sized to match the body lines emitted by [cardLine] so left
+// and right edges align: those lines occupy
+// `"│ " + innerWidth runes + " │"`, which is `innerWidth + 4` cells.
+// We mirror that here.
+func writeCardHeaderRule(b *strings.Builder, t style.Theme, sev rules.Severity, left, right string, innerWidth int) {
+	leftRunes := []rune(left)
+	rightRunes := []rune(right)
+	// Card body cells = innerWidth + 4 ("│ " + content + " │").
+	// The corners ("┌", "┐") consume 2 of those; the lead-in dash
+	// ("┌─") and the matching trailing dash ("─┐") consume 2 more.
+	// What's left is what the labels + gap may use.
+	usable := innerWidth // = (innerWidth+4) - 2 corners - 2 lead/trail dashes
+	if len(leftRunes)+len(rightRunes) > usable {
+		max := usable - len(rightRunes)
+		if max < 4 {
+			max = 4
+		}
+		leftRunes = leftRunes[:max]
+	}
+	gap := usable - len(leftRunes) - len(rightRunes)
+	if gap < 1 {
+		gap = 1
+	}
+
+	leftStyled := stylizeSeverityWord(t, sev, string(leftRunes))
+	gapStr := strings.Repeat("─", gap)
+	right = string(rightRunes)
+
+	fmt.Fprintf(b, "%s%s%s%s%s%s\n",
+		contentIndent,
+		t.CardBorder.Render("┌─"),
+		leftStyled,
+		t.CardBorder.Render(gapStr),
+		t.Savings.Render(right),
+		t.CardBorder.Render("─┐"),
+	)
+}
+
+// stylizeSeverityWord re-renders the leading severity token in the
+// card header with the matching badge color, leaving the rest of the
+// label (workload name) in plain card-border tone.
+func stylizeSeverityWord(t style.Theme, sev rules.Severity, label string) string {
+	parts := strings.SplitN(label, " · ", 2)
+	if len(parts) != 2 {
+		return t.CardBorder.Render(label)
+	}
+	sevTok := parts[0]
+	rest := " · " + parts[1]
+	var sevStyle = t.Muted
+	switch sev {
+	case rules.SeverityHigh:
+		sevStyle = t.SevHigh
+	case rules.SeverityMed:
+		sevStyle = t.SevMed
+	case rules.SeverityLow:
+		sevStyle = t.SevLow
+	}
+	// Use a foreground-only re-render here — we don't want the
+	// background-coloured badge style inside a header rule, just the
+	// matching foreground tone.
+	return sevStyle.Copy().Background(noBackground()).Render(sevTok) +
+		t.CardBorder.Render(rest)
+}
+
+// noBackground returns a sentinel "no background" so the badge style
+// can be reused as a foreground-only accent inside the card header.
+// Keeping this inside one helper means the rest of the renderer never
+// pokes at lipgloss internals.
+func noBackground() lipgloss.TerminalColor { return lipgloss.NoColor{} }
+
+// cardLine writes a single body line of a card, padded to innerWidth
+// runes between the side rules.
+func cardLine(b *strings.Builder, t style.Theme, innerWidth int, content string) {
+	visible := visibleRuneCount(content)
+	if visible > innerWidth {
+		// Should not happen — callers wrap first — but if it does,
+		// truncate visibly so the column alignment stays intact.
+		content = truncate(content, innerWidth)
+		visible = innerWidth
+	}
+	pad := strings.Repeat(" ", innerWidth-visible)
+	fmt.Fprintf(b, "%s%s %s%s %s\n",
+		contentIndent,
+		t.CardBorder.Render("│"),
+		content,
+		pad,
+		t.CardBorder.Render("│"),
+	)
+}
+
+// formatSignalLine renders a Signal as a one-liner sized to fit
+// inside a card body row:
+//
+//	CPU  request 200m ████████░░░░░░░░░░░░░ 1   10x burst
+//
+// Numbers and labels are width-aware so cards with different
+// magnitudes line up vertically when stacked.
+func formatSignalLine(t style.Theme, s rules.Signal) string {
+	bar := t.SignalBar(s.Have, s.Want, signalBarWidth)
+	label := s.Label
+	if label == "" {
+		label = "ratio"
+	}
+	note := ""
+	if s.Note != "" {
+		note = "   " + t.Muted.Render(s.Note)
+	}
+	return fmt.Sprintf("%s %s %s %s%s",
+		t.Muted.Render(padRight(label, 8)),
+		t.Detail.Render(padRight(s.HaveDisplay, 6)),
+		bar,
+		t.Detail.Render(s.WantDisplay),
+		note,
+	)
+}
+
+// padRight returns s padded with spaces to width runes (no truncation
+// — short callers use width-aware columns elsewhere).
+func padRight(s string, width int) string {
+	r := []rune(s)
+	if len(r) >= width {
+		return s
+	}
+	return s + strings.Repeat(" ", width-len(r))
+}
+
+// visibleRuneCount counts terminal cells of s ignoring ANSI/OSC
+// escape sequences. Counts in runes (not bytes) so multi-byte
+// glyphs — the box-drawing characters, the bar blocks, and the
+// confidence dots — are sized correctly. Assumes one cell per rune
+// (no wide-CJK in our copy); good enough for card padding.
+func visibleRuneCount(s string) int {
+	n := 0
+	r := []rune(s)
+	for i := 0; i < len(r); {
+		if r[i] != 0x1b {
+			n++
+			i++
+			continue
+		}
+		// CSI: ESC [ … <letter in @..~>
+		if i+1 < len(r) && r[i+1] == '[' {
+			j := i + 2
+			for j < len(r) && (r[j] < '@' || r[j] > '~') {
+				j++
+			}
+			if j < len(r) {
+				j++
+			}
+			i = j
+			continue
+		}
+		// OSC: ESC ] … (ESC \ | BEL)
+		if i+1 < len(r) && r[i+1] == ']' {
+			j := i + 2
+			for j < len(r) {
+				if r[j] == 0x07 {
+					j++
+					break
+				}
+				if r[j] == 0x1b && j+1 < len(r) && r[j+1] == '\\' {
+					j += 2
+					break
+				}
+				j++
+			}
+			i = j
+			continue
+		}
+		i += 2
+	}
+	return n
 }
 
 func writeSecuritySection(b *strings.Builder, t style.Theme, width int, findings []rules.Finding) {
@@ -306,7 +569,7 @@ func writeSecurityFinding(b *strings.Builder, t style.Theme, f rules.Finding, wo
 	)
 }
 
-func writeFooter(b *strings.Builder, t style.Theme, width int, totalCents int64) {
+func writeFooter(b *strings.Builder, t style.Theme, width int, totalCents int64, opts Options) {
 	fmt.Fprintf(b, "%s\n", t.DividerLine(width))
 	if totalCents > 0 {
 		fmt.Fprintf(b, "%s%s %s   %s\n", contentIndent,
@@ -315,12 +578,17 @@ func writeFooter(b *strings.Builder, t style.Theme, width int, totalCents int64)
 			t.Muted.Render("(±40%)"),
 		)
 	}
+	// Accuracy disclosure is mandatory and exact (CLAUDE.md hard rule).
+	// Roast can add a quip BELOW it; it never replaces it.
 	fmt.Fprintf(b, "%s%s\n", contentIndent, t.Disclosure.Render(AccuracyDisclosure))
 	linkLabel := t.CallToLink.Render("optiqor.dev/get")
 	fmt.Fprintf(b, "%s%s %s\n", contentIndent,
 		t.Muted.Render("→ install the agent for exact numbers:"),
 		t.Hyperlink(linkLabel, GetURL),
 	)
+	if opts.Roast && opts.RoastFooter != "" {
+		fmt.Fprintf(b, "%s%s\n", contentIndent, t.Tagline.Render(opts.RoastFooter))
+	}
 }
 
 // JSON writes the report as machine-readable JSON. Always disclosure-
