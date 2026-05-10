@@ -20,11 +20,21 @@ or `pkg/`.
 - [ ] **`compare` as side-by-side, not a `diff` alias** — playbook Feature 7 ("bitnami/postgresql vs cloudnative-pg") is press-bait. Needs a 2-column renderer + winner declaration.
 - [ ] **Populate `Signal` on the remaining cost detectors** that have ratios but don't yet emit one: `oversized-cpu-limit`, `oversized-memory-limit`, `excessive-replica-count`, `tiny-cpu-request`, `tiny-memory-request`, `cpu-without-memory-request`, `memory-without-cpu-request`.
 
+### Web-rendering surface (shared with backend share pages — `optiqor-cli/pkg/htmlrender`)
+
+> The CLI is terminal-first, but two narrow web touch-points cross repos. Both ship as Apache-2.0 Go code from this repo so the backend can `import` them without contaminating the OSS audit story.
+
+- [ ] **`pkg/htmlrender`** — Go `html/template` renderer that takes a `render.Report` and emits a single self-contained HTML document. Inline CSS, zero JS framework, zero external assets — openable from `file://`. Same package the backend uses to serve `optiqor.dev/r/<hash>` so the CLI's local HTML and the backend's share page are byte-equivalent.
+- [ ] **`analyze --html <path>`** flag — wires `pkg/htmlrender` to a CLI flag. `optiqor analyze ./chart --html report.html` writes a shareable file the user can email or commit. Accuracy disclosure mandatory, same as text + JSON paths.
+- [ ] **`brand/tokens.json`** — single source of truth for the brand palette (colors, font stack, logo file references). Apache-2.0. Consumed by `pkg/htmlrender` (Go) and by the backend's `web/lib/brand` (TypeScript) so terminal + HTML report + dashboard never drift on the hero color.
+- [ ] **`docs/api/openapi.yaml`** — public API spec for `/v1/analyze`, `/r/{hash}`, `/v1/receipts/{id}`. Apache-2.0 so community tooling + the backend's TS client can be generated from one file. Drift between the spec and the backend handler is asserted by a CI check in the backend repo.
+
 ## Tier 2 — Distribution multipliers
 
 - [ ] **`optiqor/actions` GitHub Action** wrapper (separate repo per playbook). Wraps `analyze --json`, posts a sticky PR comment.
 - [ ] **Shell completions** — Cobra emits bash/zsh/fish for free; ship via goreleaser into the npm tarball.
 - [ ] **Man page** — Cobra → `man optiqor` from the same registry.
+- [ ] **`docs-site/`** — Astro + MDX static site for `docs.optiqor.dev`. Zero-JS by default (Lighthouse 100), React islands when interactivity is needed, output deploys to S3 + CloudFront. MDX source covers CLI commands, the `pkg/rules` detector catalogue, and the public OpenAPI reference. Stays Apache-2.0 so external contributors can edit docs without a CLA dance.
 
 ## Tier 3 — Trust / enterprise gates
 
