@@ -1,0 +1,47 @@
+{
+  "name": "optiqor-cli",
+  "image": "mcr.microsoft.com/devcontainers/go:1-1.24-bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "postCreateCommand": "bash -lc 'go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6 && (test -f package.json && npm install || true)'",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "redhat.vscode-yaml",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.vscode-github-actions",
+        "EditorConfig.EditorConfig",
+        "tamasfe.even-better-toml",
+        "ms-vscode.makefile-tools"
+      ],
+      "settings": {
+        "go.lintTool": "golangci-lint",
+        "go.lintOnSave": "package",
+        "go.formatTool": "gofmt",
+        "go.useLanguageServer": true,
+        "[go]": {
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        },
+        "files.watcherExclude": {
+          "**/bin/**": true,
+          "**/.git/**": true,
+          "**/node_modules/**": true,
+          "**/testdata/golden/**": true
+        }
+      }
+    }
+  },
+
+  "remoteUser": "vscode"
+}
