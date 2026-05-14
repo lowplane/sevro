@@ -1,0 +1,40 @@
+# Copyright 2026 Optiqor contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Auto-label PRs by changed line count so reviewers can triage by size.
+# Lockfiles and golden test fixtures are excluded from the count.
+name: PR size
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  size:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label by size
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: "size/XS"
+          xs_max_size: "10"
+          s_label: "size/S"
+          s_max_size: "50"
+          m_label: "size/M"
+          m_max_size: "200"
+          l_label: "size/L"
+          l_max_size: "500"
+          xl_label: "size/XL"
+          fail_if_xl: "false"
+          message_if_xl: |
+            This PR is larger than 500 changed lines. Consider splitting into
+            smaller PRs — each focused on one concern — so reviewers can land
+            them faster.
+          files_to_ignore: |
+            go.sum
+            package-lock.json
+            testdata/golden/*
